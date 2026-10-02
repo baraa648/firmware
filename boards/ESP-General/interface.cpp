@@ -6,25 +6,24 @@
 ** Location: main.cpp
 ** Description:   initial setup for the device
 ***************************************************************************************/
-void _setup_gpio() { bruceConfig.startupApp = "WebUI"; }
+void _setup_gpio() {
+    pinMode(SEL_BTN, INPUT_PULLUP);
+    pinMode(UP_BTN, INPUT_PULLUP);
+    pinMode(DW_BTN, INPUT_PULLUP);
+}
 
 /***************************************************************************************
 ** Function name: getBattery()
-** location: display.cpp
-** Description:   Delivers the battery value from 1-100
 ***************************************************************************************/
 int getBattery() { return 0; }
 
 /***************************************************************************************
 ** Function name: isCharging()
-** Description:   Default implementation that returns false
 ***************************************************************************************/
 bool isCharging() { return false; }
 
 /*********************************************************************
-** Function: setBrightness
-** location: settings.cpp
-** set brightness value
+** Function: setBrightness  (backlight is wired to 3V3, nothing to do)
 **********************************************************************/
 void _setBrightness(uint8_t brightval) {}
 
@@ -32,18 +31,30 @@ void _setBrightness(uint8_t brightval) {}
 ** Function: InputHandler
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
-void InputHandler(void) {}
+void InputHandler(void) {
+    static unsigned long tm = 0;
+    if (millis() - tm < 200 && !LongPress) return;
+
+    bool sel = digitalRead(SEL_BTN) == LOW;
+    bool up = digitalRead(UP_BTN) == LOW;
+    bool dw = digitalRead(DW_BTN) == LOW;
+
+    if (sel || up || dw) {
+        tm = millis();
+        if (!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+    }
+    if (sel) SelPress = true;
+    if (up) PrevPress = true;
+    if (dw) NextPress = true;
+}
 
 /*********************************************************************
 ** Function: powerOff
-** location: mykeyboard.cpp
-** Turns off the device (or try to)
 **********************************************************************/
 void powerOff() {}
 
 /*********************************************************************
 ** Function: checkReboot
-** location: mykeyboard.cpp
-** Btn logic to turnoff the device (name is odd btw)
 **********************************************************************/
 void checkReboot() {}
